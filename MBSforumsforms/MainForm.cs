@@ -66,13 +66,13 @@ namespace MBSforumsforms
         {
             public string PostDescrip { get; set; }
             public string PostName { get; set; }
-            public string PostAuthor { get; set; }
+            public string PostAuthorName { get; set; }
+            public int PostAuthorID { get; set; }
             public Post(SqlDataReader reader)
             {
                 PostDescrip = (string)reader["PostDescrip"];
                 PostName = (string)reader["PostName"];
-                PostAuthor = (string)reader["PostAuthor"];
-
+                PostAuthorID = (int)reader["PostAuthorID"];
             }
             public override string ToString()
             {
@@ -95,7 +95,7 @@ namespace MBSforumsforms
                 int ID = int.Parse(txtID.Text);
                 var pass = txtPassword.Text;
 
-                if (ID == (int)reader["ID"] && pass == (string)reader["Password"])
+                if (ID == (int)reader["UserID"] && pass == (string)reader["Password"])
                 {
                     ShowMain(true);
                     lblIncorrect.Visible = false;
@@ -182,12 +182,12 @@ namespace MBSforumsforms
             SqlConnection connection = new SqlConnection(@"Server=DESKTOP-E4CK1RC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
             connection.Open();
 
-            string postName, postDesc, postAuthor, postDate, postTime;
-            int numOfLikes;
+            string postName, postDesc, postDate, postTime;
+            int numOfLikes, postAuthorID;
 
             postName = txtPostTitle.Text;
             postDesc = txtPostDesc.Text;
-            postAuthor = txtPostAuthor.Text;
+            postAuthorID = int.Parse(txtPostAuthor.Text);
             postDesc = postDesc.ReplaceLineEndings();
 
             postDate = DateTime.Now.ToString("MM/dd/yy");
@@ -195,16 +195,16 @@ namespace MBSforumsforms
 
             numOfLikes = 0;
 
-            var sql = $"INSERT INTO posts VALUES ({topicID}, '{postName}', '{postDesc}', {numOfLikes}, '{postDate}', '{postTime}', '{postAuthor}')";
+            var sql = $"INSERT INTO posts VALUES ({topicID}, '{postName}', '{postDesc}', {numOfLikes}, '{postDate}', '{postTime}', {postAuthorID})";
             SqlCommand cmd = new SqlCommand(sql, connection);
             cmd.ExecuteNonQuery();
         }
 
-        private void ViewPost(string postAuthor, string postTitle, string postDesc)
+        private void ViewPost(int postAuthorID, string postTitle, string postDesc)
         {
             txtPostDesc.Text = postDesc;
             txtPostTitle.Text = postTitle;
-            txtPostAuthor.Text = postAuthor;
+            txtPostAuthor.Text = postAuthorID.ToString();
 
             txtPostDesc.Enabled = false;
             txtPostTitle.Enabled = false;
@@ -219,6 +219,25 @@ namespace MBSforumsforms
 
             lblPostName.Visible = true;
             lblAuthor.Visible = true;
+
+            UpdateUsers(postAuthorID);
+        }
+        private void UpdateUsers(int postAuthorID)
+        {
+            SqlConnection connection = new SqlConnection(@"Server=DESKTOP-E4CK1RC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            connection.Open();
+            var sql = "SELECT * FROM users INNER JOIN posts ON users.UserID = posts.PostAuthorID";
+            SqlCommand cmd = new SqlCommand(sql, connection);
+            SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                int userID = (int)reader["UserID"];
+
+                if (userID == postAuthorID)
+                {
+                    txtPostAuthor.Text = (string)reader["Username"];
+                }
+            }
         }
 
         private void ShowMain(bool shouldShow)
@@ -260,7 +279,7 @@ namespace MBSforumsforms
         private void lstPosts_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lstPosts.SelectedItem is Post post)
-                ViewPost(post.PostAuthor, post.PostName, post.PostDescrip);
+                ViewPost(post.PostAuthorID, post.PostName, post.PostDescrip);
         }
 
         private void bttnCreate_Click(object sender, EventArgs e)

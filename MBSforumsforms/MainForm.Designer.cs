@@ -178,17 +178,15 @@
             // txtID
             // 
             this.txtID.Location = new System.Drawing.Point(238, 188);
-            this.txtID.Multiline = true;
             this.txtID.Name = "txtID";
-            this.txtID.Size = new System.Drawing.Size(315, 27);
+            this.txtID.Size = new System.Drawing.Size(315, 23);
             this.txtID.TabIndex = 14;
             // 
             // txtPassword
             // 
             this.txtPassword.Location = new System.Drawing.Point(238, 237);
-            this.txtPassword.Multiline = true;
             this.txtPassword.Name = "txtPassword";
-            this.txtPassword.Size = new System.Drawing.Size(315, 27);
+            this.txtPassword.Size = new System.Drawing.Size(315, 23);
             this.txtPassword.TabIndex = 15;
             // 
             // lblUsername
