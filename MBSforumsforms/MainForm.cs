@@ -32,59 +32,11 @@ namespace MBSforumsforms
         //    }
         //}
 
-        class Forum
-        {
-            public int ID { get; set; }
-            public string ForumName { get; set; }
-            public Forum(SqlDataReader reader)
-            {
-                ID = (int)reader["ID"];
-                ForumName = (string)reader["ForumName"];
-            }
-            public override string ToString()
-            {
-                return ForumName;
-            }
-        }
-
-        class Topic
-        {
-            public int ID { get; set; }
-            public string TopicName { get; set; }
-            public Topic(SqlDataReader reader)
-            {
-                ID = (int)reader["ID"];
-                TopicName = (string)reader["TopicName"];
-            }
-            public override string ToString()
-            {
-                return TopicName;
-            }
-        }
-
-        class Post
-        {
-            public string PostDescrip { get; set; }
-            public string PostName { get; set; }
-            public string PostAuthorName { get; set; }
-            public int PostAuthorID { get; set; }
-            public Post(SqlDataReader reader)
-            {
-                PostDescrip = (string)reader["PostDescrip"];
-                PostName = (string)reader["PostName"];
-                PostAuthorID = (int)reader["PostAuthorID"];
-            }
-            public override string ToString()
-            {
-                return PostName;
-            }
-        }
-
-        private void LogIn()
+		private void LogIn()
         {
             bool loginSuccess = false;
 
-            SqlConnection connection = new SqlConnection(@"Server=DESKTOP-E4CK1RC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
             connection.Open();
             var sql = "SELECT * FROM users";
             SqlCommand cmd = new SqlCommand(sql, connection);
@@ -100,6 +52,7 @@ namespace MBSforumsforms
                     ShowMain(true);
                     lblIncorrect.Visible = false;
                     loginSuccess = true;
+                    User.CurrentUserID = ID;
                 }
             }
             if (loginSuccess == false)
@@ -108,46 +61,48 @@ namespace MBSforumsforms
 
         private void PopulateForums()
         {
-            SqlConnection connection = new SqlConnection(@"Server=DESKTOP-E4CK1RC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
-            connection.Open();
-            var sql = "SELECT * FROM forums";
-            SqlCommand cmd = new SqlCommand(sql, connection);
-            SqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                var forum = new Forum(reader);
+            var forums = Forum.FetchAll();
+            foreach (var forum in forums)
+			{
                 lstForums.Items.Add(forum);
             }
         }
 
         private void PopulateTopics(int forumID)
         {
-            SqlConnection connection = new SqlConnection(@"Server=DESKTOP-E4CK1RC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
-            connection.Open();
-            var sql = "SELECT * FROM topics";
-            SqlCommand cmd = new SqlCommand(sql, connection);
-            SqlDataReader reader = cmd.ExecuteReader();
+            lstPosts.Items.Clear();
+            lstTopics.Items.Clear();
 
-            while (reader.Read())
-            {
-                if ((int)reader["ForumID"] == forumID)
-                {
-                    var topic = new Topic(reader);
-
-                    lstPosts.Items.Clear();
-                    lstTopics.Items.Clear();
+            var topics = Topic.FetchAll();
+            foreach (var topic in topics)
+			{
+                if (topic.ForumID == forumID)
                     lstTopics.Items.Add(topic);
-                }
-            }
+			}
         }
 
         private void PopulatePosts(int topicID)
         {
-            SqlConnection connection = new SqlConnection(@"Server=DESKTOP-E4CK1RC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            lstPosts.Items.Clear();
+
+            var posts = Post.FetchAll();
+            foreach (var post in posts)
+            {
+                if (post.TopicID == topicID)
+                    lstPosts.Items.Add(post);
+            }
+        }
+
+        private void PopulatePosts_Old(int topicID)
+        {
+            SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
             connection.Open();
             var sql = "SELECT * FROM posts";
             SqlCommand cmd = new SqlCommand(sql, connection);
             SqlDataReader reader = cmd.ExecuteReader();
+
+            lstPosts.Items.Clear();
+
             while (reader.Read())
             {
                 if ((int)reader["TopicID"] == topicID)
@@ -167,11 +122,14 @@ namespace MBSforumsforms
 
             txtPostDesc.Enabled = true;
             txtPostTitle.Enabled = true;
-            txtPostAuthor.Enabled = true;
+            txtPostAuthor.Enabled = false;
+            txtPostAuthor.Text = "Me";
 
             txtPostAuthor.Visible = true;
             txtPostDesc.Visible = true;
             txtPostTitle.Visible = true;
+            lblAuthor.Visible = true;
+            lblPostName.Visible = true;
 
             bttnPost.Visible = true;
             bttnLike.Visible = false;
@@ -179,15 +137,12 @@ namespace MBSforumsforms
 
         private void FinalizePost(int topicID)
         {
-            SqlConnection connection = new SqlConnection(@"Server=DESKTOP-E4CK1RC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
-            connection.Open();
-
             string postName, postDesc, postDate, postTime;
             int numOfLikes, postAuthorID;
 
             postName = txtPostTitle.Text;
             postDesc = txtPostDesc.Text;
-            postAuthorID = int.Parse(txtPostAuthor.Text);
+            postAuthorID = User.CurrentUserID;
             postDesc = postDesc.ReplaceLineEndings();
 
             postDate = DateTime.Now.ToString("MM/dd/yy");
@@ -195,9 +150,24 @@ namespace MBSforumsforms
 
             numOfLikes = 0;
 
-            var sql = $"INSERT INTO posts VALUES ({topicID}, '{postName}', '{postDesc}', {numOfLikes}, '{postDate}', '{postTime}', {postAuthorID})";
-            SqlCommand cmd = new SqlCommand(sql, connection);
-            cmd.ExecuteNonQuery();
+            if (String.IsNullOrWhiteSpace(txtPostTitle.Text))
+			{
+                lblPostName.BackColor = Color.Firebrick;
+			}
+			else
+			{
+                lblPostName.BackColor = Color.Transparent;
+
+                using (SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;"))
+				{
+                    connection.Open();
+                    var sql = $"INSERT INTO posts VALUES ({topicID}, '{postName}', '{postDesc}', {numOfLikes}, '{postDate}', '{postTime}', {postAuthorID})";
+                    using (SqlCommand cmd = new SqlCommand(sql, connection))
+                        cmd.ExecuteNonQuery();
+                }
+                    
+                RefreshPosts();
+            }
         }
 
         private void ViewPost(int postAuthorID, string postTitle, string postDesc)
@@ -220,11 +190,13 @@ namespace MBSforumsforms
             lblPostName.Visible = true;
             lblAuthor.Visible = true;
 
+            CanEdit(postAuthorID);
             UpdateUsers(postAuthorID);
         }
+
         private void UpdateUsers(int postAuthorID)
         {
-            SqlConnection connection = new SqlConnection(@"Server=DESKTOP-E4CK1RC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
             connection.Open();
             var sql = "SELECT * FROM users INNER JOIN posts ON users.UserID = posts.PostAuthorID";
             SqlCommand cmd = new SqlCommand(sql, connection);
@@ -238,6 +210,63 @@ namespace MBSforumsforms
                     txtPostAuthor.Text = (string)reader["Username"];
                 }
             }
+        }
+
+        private void CanEdit(int postAuthorID)
+		{
+            if(User.CurrentUserID == postAuthorID)
+			{
+                bttnEditPost.Visible = true;
+                bttnRemove.Visible = true;
+			}
+			else
+			{
+                bttnEditPost.Visible = false;
+                bttnRemove.Visible = false;
+            }
+        }
+
+        private void EditPost()
+		{
+            bttnEditPost.Text = "Confirm Edit";
+
+            txtPostDesc.Enabled = true;
+        }
+
+        private void FinalizeEdit()
+		{
+            SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            connection.Open();
+
+            txtPostDesc.Enabled = false;
+
+            string postDesc = txtPostDesc.Text;
+            postDesc = postDesc.ReplaceLineEndings();
+            var selectedPost = (Post)lstPosts.SelectedItem;
+            var postID = selectedPost.PostID;
+
+            bttnEditPost.Text = "Edit";
+
+            var sql = $"UPDATE Posts SET PostDescrip = '{postDesc}' WHERE ID = {postID} ";
+            SqlCommand cmd = new SqlCommand(sql, connection);
+            cmd.ExecuteNonQuery();
+
+            RefreshPosts();
+        }
+
+        private void RemovePost()
+		{
+            SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            connection.Open();
+
+            var selectedPost = (Post)lstPosts.SelectedItem;
+            var postID = selectedPost.PostID;
+
+            var sql = $"DELETE FROM Posts WHERE ID = {postID}";
+            SqlCommand cmd = new SqlCommand(sql, connection);
+            cmd.ExecuteNonQuery();
+
+            RefreshPosts();
         }
 
         private void ShowMain(bool shouldShow)
@@ -261,22 +290,23 @@ namespace MBSforumsforms
                 PopulateTopics(forum.ID);
                 bttnCreate.Visible = false;
             }
-            else
-                throw new Exception($"Unexpected Type {lstForums.SelectedItem.GetType().Name}");
         }
 
         private void lstTopics_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (lstTopics.SelectedItem is Topic topic)
-            {
-                PopulatePosts(topic.ID);
-                bttnCreate.Visible = true;
-            }
-            else
-                throw new Exception($"Unexpected Type {lstTopics.SelectedItem.GetType().Name}");
-        }
+		{
+			RefreshPosts();
+		}
 
-        private void lstPosts_SelectedIndexChanged(object sender, EventArgs e)
+		private void RefreshPosts()
+		{
+			if (lstTopics.SelectedItem is Topic topic)
+			{
+				PopulatePosts(topic.ID);
+				bttnCreate.Visible = true;
+			}
+		}
+
+		private void lstPosts_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lstPosts.SelectedItem is Post post)
                 ViewPost(post.PostAuthorID, post.PostName, post.PostDescrip);
@@ -299,5 +329,18 @@ namespace MBSforumsforms
         {
             LogIn();
         }
-    }
+
+		private void bttnEditPost_Click(object sender, EventArgs e)
+		{
+            if (bttnEditPost.Text == "Edit")
+                EditPost();
+            else if (bttnEditPost.Text == "Confirm Edit")
+                FinalizeEdit();
+		}
+
+		private void bttnRemove_Click(object sender, EventArgs e)
+		{
+            RemovePost();
+		}
+	}
 }
