@@ -9,6 +9,20 @@ namespace MBSforumsforms
 {
 	internal class Forum
 	{
+        public static Forum Fetch(int forumID)
+		{
+            SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            connection.Open();
+            var sql = $"SELECT * FROM forums WHERE ID = {forumID}";
+            SqlCommand cmd = new SqlCommand(sql, connection);
+            SqlDataReader reader = cmd.ExecuteReader();
+
+            reader.Read();
+            var forum = new Forum(reader);
+
+            return forum;
+        }
+
         public static List<Forum> FetchAll()
 		{
             using SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
