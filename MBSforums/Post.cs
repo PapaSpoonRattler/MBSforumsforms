@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MBSforumsforms
 {
-	internal class Post
+	public class Post
 	{
         public static Post Fetch(int postID)
 		{

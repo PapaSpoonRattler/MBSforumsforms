@@ -21,17 +21,6 @@ namespace MBSforumsforms
 
 		}
 
-		//class Profile
-		//{
-		//    public int userID { get; set; }
-		//    public string userPassword { get; set; }
-		//    public Profile(SqlDataReader reader)
-		//    {
-		//        userID = (int)reader["ID"];
-		//        userPassword = (string)reader["Password"];
-		//    }
-		//}
-
 		private void LogIn()
 		{
 			bool loginSuccess = false;
@@ -191,24 +180,6 @@ namespace MBSforumsforms
 
 			if (userID == postAuthorID)
 				txtPostAuthor.Text = author.Username;
-		}
-
-		private void UpdateUsers_Old(int postAuthorID)
-		{
-			SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
-			connection.Open();
-			var sql = "SELECT * FROM users INNER JOIN posts ON users.UserID = posts.PostAuthorID";
-			SqlCommand cmd = new SqlCommand(sql, connection);
-			SqlDataReader reader = cmd.ExecuteReader();
-			while (reader.Read())
-			{
-				int userID = (int)reader["UserID"];
-
-				if (userID == postAuthorID)
-				{
-					txtPostAuthor.Text = (string)reader["Username"];
-				}
-			}
 		}
 
 		private void CanEdit(int postAuthorID)
