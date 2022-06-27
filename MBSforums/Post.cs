@@ -5,13 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MBSforumsforms
+namespace MBSforums
 {
-	public class Post
+    public class Post
 	{
         public static Post Fetch(int postID)
 		{
-            SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            SqlConnection connection = new SqlConnection(Config.ConnectionString);
             connection.Open();
             var sql = $"SELECT * FROM posts WHERE ID = {postID}";
             SqlCommand cmd = new SqlCommand(sql, connection);
@@ -25,7 +25,7 @@ namespace MBSforumsforms
 
         public static List<Post> FetchAll()
 		{
-            using SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            using SqlConnection connection = new SqlConnection(Config.ConnectionString);
             connection.Open();
             var sql = "SELECT * FROM posts";
             using SqlCommand cmd = new SqlCommand(sql, connection);
@@ -43,7 +43,7 @@ namespace MBSforumsforms
 
         public static void Remove(int postID)
 		{
-            SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            SqlConnection connection = new SqlConnection(Config.ConnectionString);
             connection.Open();
             var sql = $"DELETE FROM Posts WHERE ID = {postID}";
             SqlCommand cmd = new SqlCommand(sql, connection);
@@ -52,7 +52,7 @@ namespace MBSforumsforms
 
         public static void PostEdit(string postDesc, int postID)
 		{
-            SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            SqlConnection connection = new SqlConnection(Config.ConnectionString);
             connection.Open();
             var sql = $"UPDATE Posts SET PostDescrip = '{postDesc}' WHERE ID = {postID} ";
             SqlCommand cmd = new SqlCommand(sql, connection);
@@ -61,7 +61,7 @@ namespace MBSforumsforms
 
         public static void Insert(int topicID, int numOfLikes, int postAuthorID, string postName, string postDesc, string postDate, string postTime)
 		{
-            using (SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;"))
+            using (SqlConnection connection = new SqlConnection(Config.ConnectionString))
             {
                 connection.Open();
                 var sql = $"INSERT INTO posts VALUES ({topicID}, '{postName}', '{postDesc}', {numOfLikes}, '{postDate}', '{postTime}', {postAuthorID})";

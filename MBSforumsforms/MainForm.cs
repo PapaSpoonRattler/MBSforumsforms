@@ -1,3 +1,4 @@
+using MBSforums;
 using System.Data.SqlClient;
 
 namespace MBSforumsforms

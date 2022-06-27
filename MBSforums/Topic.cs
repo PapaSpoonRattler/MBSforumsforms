@@ -5,13 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MBSforumsforms
+namespace MBSforums
 {
-	public class Topic
+    public class Topic
 	{
         public static Topic Fetch(int topicID)
 		{
-            SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            SqlConnection connection = new SqlConnection(Config.ConnectionString);
             connection.Open();
             var sql = $"SELECT * FROM topics WHERE ID = {topicID}";
             SqlCommand cmd = new SqlCommand(sql, connection);
@@ -25,7 +25,7 @@ namespace MBSforumsforms
 
         public static List<Topic> FetchAll()
 		{
-            using SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+            using SqlConnection connection = new SqlConnection(Config.ConnectionString);
             connection.Open();
             var sql = "SELECT * FROM topics";
             using SqlCommand cmd = new SqlCommand(sql, connection);

@@ -5,13 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MBSforumsforms
+namespace MBSforums
 {
 	public class User
 	{
 		public static User Fetch(string username)
 		{
-			SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+			SqlConnection connection = new SqlConnection(Config.ConnectionString);
 			connection.Open();
 			var sql = $"SELECT * FROM users WHERE Username = '{username}'";
 			SqlCommand cmd = new SqlCommand(sql, connection);
@@ -25,7 +25,7 @@ namespace MBSforumsforms
 
 		public static User Fetch(int userID)
 		{
-			SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+			SqlConnection connection = new SqlConnection(Config.ConnectionString);
 			connection.Open();
 			var sql = $"SELECT * FROM users WHERE UserID = {userID}";
 			SqlCommand cmd = new SqlCommand(sql, connection);
@@ -39,7 +39,7 @@ namespace MBSforumsforms
 
 		public static List<User> FetchAll()
 		{
-			SqlConnection connection = new SqlConnection(@"Server=JEREMYS-PC\SQLEXPRESS;Database=MBSforum;Trusted_Connection=True;");
+			SqlConnection connection = new SqlConnection(Config.ConnectionString);
 			connection.Open();
 			var sql = "SELECT * FROM users";
 			SqlCommand cmd = new SqlCommand(sql, connection);
