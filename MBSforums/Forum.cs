@@ -13,8 +13,9 @@ namespace MBSforums
 		{
             SqlConnection connection = new SqlConnection(Config.ConnectionString);
             connection.Open();
-            var sql = $"SELECT * FROM forums WHERE ID = {forumID}";
+            var sql = $"SELECT * FROM forums WHERE ID = @ForumID";
             SqlCommand cmd = new SqlCommand(sql, connection);
+            cmd.Parameters.AddWithValue("@ForumID", forumID);
             SqlDataReader reader = cmd.ExecuteReader();
 
             reader.Read();

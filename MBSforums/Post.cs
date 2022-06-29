@@ -8,13 +8,14 @@ using System.Threading.Tasks;
 namespace MBSforums
 {
     public class Post
-	{
+    {
         public static Post Fetch(int postID)
-		{
+        {
             SqlConnection connection = new SqlConnection(Config.ConnectionString);
             connection.Open();
-            var sql = $"SELECT * FROM posts WHERE ID = {postID}";
+            var sql = "SELECT * FROM posts WHERE ID = @PostID";
             SqlCommand cmd = new SqlCommand(sql, connection);
+            cmd.Parameters.AddWithValue("@PostID", postID);
             SqlDataReader reader = cmd.ExecuteReader();
 
             if (reader.Read())
@@ -24,7 +25,7 @@ namespace MBSforums
         }
 
         public static List<Post> FetchAll()
-		{
+        {
             using SqlConnection connection = new SqlConnection(Config.ConnectionString);
             connection.Open();
             var sql = "SELECT * FROM posts";
@@ -42,47 +43,57 @@ namespace MBSforums
         }
 
         public static void Remove(int postID)
-		{
+        {
             SqlConnection connection = new SqlConnection(Config.ConnectionString);
             connection.Open();
-            var sql = $"DELETE FROM Posts WHERE ID = {postID}";
+            var sql = "DELETE FROM Posts WHERE ID = @PostID";
             SqlCommand cmd = new SqlCommand(sql, connection);
+            cmd.Parameters.AddWithValue("@PostID", postID);
+
             cmd.ExecuteNonQuery();
         }
 
         public static void PostEdit(string postDesc, int postID)
-		{
+        {
             SqlConnection connection = new SqlConnection(Config.ConnectionString);
             connection.Open();
-            var sql = $"UPDATE Posts SET PostDescrip = '{postDesc}' WHERE ID = {postID} ";
+            var sql = $"UPDATE Posts SET PostDescrip = @PostDesc WHERE ID = @PostID ";
             SqlCommand cmd = new SqlCommand(sql, connection);
+            cmd.Parameters.AddWithValue("@PostID", postID);
+            cmd.Parameters.AddWithValue("@PostDesc", postDesc);
+
             cmd.ExecuteNonQuery();
         }
 
         public static void Insert(int topicID, int numOfLikes, int postAuthorID, string postName, string postDesc, string postDate, string postTime)
-		{
-            using (SqlConnection connection = new SqlConnection(Config.ConnectionString))
+        {
+            Database.ExecuteCommand("InsertPost", cmd =>
             {
-                connection.Open();
-                var sql = $"INSERT INTO posts VALUES ({topicID}, '{postName}', '{postDesc}', {numOfLikes}, '{postDate}', '{postTime}', {postAuthorID})";
-                using (SqlCommand cmd = new SqlCommand(sql, connection))
-                    cmd.ExecuteNonQuery();
-            }
+                cmd.Parameters.AddWithValue("@TopicID", topicID);
+                cmd.Parameters.AddWithValue("@PostName", postName);
+                cmd.Parameters.AddWithValue("@PostDesc", postDesc);
+                cmd.Parameters.AddWithValue("@NumOfLikes", numOfLikes);
+                cmd.Parameters.AddWithValue("@PostDate", postDate);
+                cmd.Parameters.AddWithValue("@PostTime", postTime);
+                cmd.Parameters.AddWithValue("@PostAuthorID", postAuthorID);
+
+                cmd.ExecuteNonQuery();
+            });
+
         }
 
         public static int FetchInsertID(int topicID, int numOfLikes, int postAuthorID, string postName, string postDesc, string postDate, string postTime)
         {
-            using (SqlConnection connection = new SqlConnection(Config.ConnectionString))
+            return Database.ExecuteScalar<int>("InsertThenFetch", cmd =>
             {
-                connection.Open();
-                var sql = $"INSERT INTO posts VALUES ({topicID}, '{postName}', '{postDesc}', {numOfLikes}, '{postDate}', '{postTime}', {postAuthorID}) SELECT ID = SCOPE_IDENTITY()";
-                SqlCommand cmd = new SqlCommand(sql, connection);
-                var scalar = cmd.ExecuteScalar();
-
-                int postID = Convert.ToInt32(scalar);
-
-                return postID;
-            }
+                cmd.Parameters.AddWithValue("@TopicID", topicID);
+                cmd.Parameters.AddWithValue("@PostName", postName);
+                cmd.Parameters.AddWithValue("@PostDesc", postDesc);
+                cmd.Parameters.AddWithValue("@NumOfLikes", numOfLikes);
+                cmd.Parameters.AddWithValue("@PostDate", postDate);
+                cmd.Parameters.AddWithValue("@PostTime", postTime);
+                cmd.Parameters.AddWithValue("@PostAuthorID", postAuthorID);
+            });
         }
 
 

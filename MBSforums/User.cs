@@ -13,8 +13,9 @@ namespace MBSforums
 		{
 			SqlConnection connection = new SqlConnection(Config.ConnectionString);
 			connection.Open();
-			var sql = $"SELECT * FROM users WHERE Username = '{username}'";
+			var sql = $"SELECT * FROM users WHERE Username = @Username";
 			SqlCommand cmd = new SqlCommand(sql, connection);
+			cmd.Parameters.AddWithValue("@Username", $"'{username}'");
 			SqlDataReader reader = cmd.ExecuteReader();
 
 			reader.Read();
@@ -27,8 +28,9 @@ namespace MBSforums
 		{
 			SqlConnection connection = new SqlConnection(Config.ConnectionString);
 			connection.Open();
-			var sql = $"SELECT * FROM users WHERE UserID = {userID}";
+			var sql = $"SELECT * FROM users WHERE UserID = @UserID";
 			SqlCommand cmd = new SqlCommand(sql, connection);
+			cmd.Parameters.AddWithValue("@UserID", $"{userID}");
 			SqlDataReader reader = cmd.ExecuteReader();
 
 			reader.Read();
