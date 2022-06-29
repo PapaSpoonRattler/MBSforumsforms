@@ -17,10 +17,10 @@ namespace MBSforums
             SqlCommand cmd = new SqlCommand(sql, connection);
             SqlDataReader reader = cmd.ExecuteReader();
 
-            reader.Read();
-            var post = new Post(reader);
-
-            return post;
+            if (reader.Read())
+                return new Post(reader);
+            else
+                throw new Exception("Post Doesn't Exist");
         }
 
         public static List<Post> FetchAll()
@@ -67,6 +67,21 @@ namespace MBSforums
                 var sql = $"INSERT INTO posts VALUES ({topicID}, '{postName}', '{postDesc}', {numOfLikes}, '{postDate}', '{postTime}', {postAuthorID})";
                 using (SqlCommand cmd = new SqlCommand(sql, connection))
                     cmd.ExecuteNonQuery();
+            }
+        }
+
+        public static int FetchInsertID(int topicID, int numOfLikes, int postAuthorID, string postName, string postDesc, string postDate, string postTime)
+        {
+            using (SqlConnection connection = new SqlConnection(Config.ConnectionString))
+            {
+                connection.Open();
+                var sql = $"INSERT INTO posts VALUES ({topicID}, '{postName}', '{postDesc}', {numOfLikes}, '{postDate}', '{postTime}', {postAuthorID}) SELECT ID = SCOPE_IDENTITY()";
+                SqlCommand cmd = new SqlCommand(sql, connection);
+                var scalar = cmd.ExecuteScalar();
+
+                int postID = Convert.ToInt32(scalar);
+
+                return postID;
             }
         }
 
